@@ -1,0 +1,119 @@
+#include <vector>
+#include <queue>
+#include <iostream>
+#include <limits>
+
+// ノードを表現するための構造体
+struct Node {
+    int x; // x座標
+    int y; // y座標
+    std::vector<std::pair<int, int>> edges; // 接続しているノードのインデックスと重み
+};
+
+// ノードを追加する関数
+void add_node(std::vector<Node>& nodes, int x, int y) {
+    Node new_node = { x, y, {} };
+    nodes.push_back(new_node);
+}
+
+// エッジを追加する関数
+void add_edge(std::vector<Node>& nodes, int idx1, int idx2, int weight) {
+    nodes[idx1].edges.push_back({ idx2, weight });
+    nodes[idx2].edges.push_back({ idx1, weight });
+}
+
+// ダイクストラ法を適用する関数
+void dijkstra(const std::vector<Node>& nodes, int start, int end) {
+    std::vector<int> dist(nodes.size(), std::numeric_limits<int>::max());
+    std::vector<int> prev(nodes.size(), -1);
+    std::priority_queue<std::pair<int, int>, std::vector<std::pair<int, int>>, std::greater<>> pq;
+
+    dist[start] = 0;
+    pq.push({ 0, start });
+
+    while (!pq.empty()) {
+        int u = pq.top().second;
+        pq.pop();
+
+        for (const auto& edge : nodes[u].edges) {
+            int v = edge.first;
+            int weight = edge.second;
+
+            if (dist[u] + weight < dist[v]) {
+                dist[v] = dist[u] + weight;
+                prev[v] = u;
+                pq.push({ dist[v], v });
+            }
+        }
+    }
+
+    // 結果を出力
+    if (dist[end] == std::numeric_limits<int>::max()) {
+        std::cout << "No path from node " << start << " to node " << end << "\n";
+    }
+    else {
+        std::cout << "Shortest distance from node " << start << " to node " << end << ": " << dist[end] << "\n";
+        std::cout << "Path: ";
+        for (int v = end; v != -1; v = prev[v]) {
+            std::cout << v << " ";
+        }
+        std::cout << "\n";
+    }
+}
+
+int main() {
+    // ノードのリストを作成
+    std::vector<Node> nodes;
+
+    // 14個のノードを作成
+    for (int i = 0; i < 14; ++i) {
+        int x, y;
+        if (i < 7) {
+            x = 0;
+            y = i * 200;
+        }else if (i == 7) {
+            x = 900;
+            y = 0;
+        }
+        else {
+            x = 900;
+            y = (i - 7) * 200;
+
+        }
+        add_node(nodes, x, y);
+
+    }
+    int srtX=500, srtY=400, golX=600, golY=800;
+    // 新しいノードを追加（座標(500, 500)と(500, 700)）
+    add_node(nodes, srtX, srtY);
+    add_node(nodes, golX, golY);
+
+    // ノード間のエッジを追加（ここではすべてのエッジの重みを1とします）
+    if (srtX < 450 && golX < 450) {
+        add_edge(nodes, 2, 14, srtX);
+    }
+    else if (srtX > 450 && golX > 450) {
+        add_edge(nodes, 8, 14, 900-srtX);
+    }
+    if (srtX < 450 && golX < 450) {
+        add_edge(nodes, 2, 14, srtX);
+    }
+    else if (srtX > 450 && golX > 450) {
+        add_edge(nodes, 9, 14, 900 - srtX);
+    }
+    for (int n = 0; n < 6; n++) {
+                add_edge(nodes, n, n + 1,200);
+            }
+            for (int l = 0; l < 6; l ++) {
+                add_edge(nodes, l+7, l + 8,200);
+            }
+            for (int m = 0; m < 7; m++) {
+                add_edge(nodes, m , m + 7,100);
+            }
+           
+
+    // ダイクストラ法を適用
+    dijkstra(nodes, nodes.size() - 2, nodes.size() - 3);
+
+    return 0;
+}
